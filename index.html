@@ -1,0 +1,115 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+		<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.17.1/axios.js"></script>
+		
+		<script type="text/javascript" src="js/jquery/autosize.min.js"></script>
+
+	</head>
+	<body>
+		<div id="app">
+			<div class="form-group row">
+				<div class="col-lg-2">
+					<select v-model="selectedCategory" class="form-control">
+						<option value="">請選擇</option>
+						<option v-for="category in categories" v-bind:value="category.Code" >{{ category.Description }}
+					</select>
+				</div>
+				<div class="col-lg-2">
+					<select v-model="selectedChapter" class="form-control">
+						<option value="">請選擇</option>
+						<option v-for="chapter in chapters" v-bind:value="chapter">{{ chapter }}
+					</select>
+				</div>
+			</div>
+			
+			<div class="form-group row">
+			
+				<div class="col-lg-2">
+					<textarea cols="20" rows="10" id="verse" class="form-control"></textarea>
+				</div>
+				<div class="col-lg-10">
+					<textarea cols="150" rows="10" id="content" class="form-control"></textarea>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
+<script type="text/javascript">
+
+	
+	new Vue({
+		el: '#app',
+		data: {
+			bible: {},
+			categories: {},
+			selectedCategory: {},
+			chapterSetting: {},
+			chapters: {},
+			selectedChapter: {}
+		},
+        methods: {
+			ddlDescription(jsonArray, compareKey) {
+				var result = jsonArray.filter(function (entry) {
+								return entry["Code"] === compareKey;
+							}).map(function (entry) {
+								return entry["Description"];
+							});
+				return result.toString();
+			}
+		},
+		watch: {
+			selectedCategory: function() {
+				this.chapters = Number(this.ddlDescription(this.chapterSetting, this.selectedCategory));
+			},
+			selectedChapter: function() {
+				$("textarea").empty();
+				
+				
+				//alert(JSON.stringify(this.bible));
+				//alert(this.selectedCategory + this.selectedChapter);
+				var varse = this.selectedCategory + this.selectedChapter;
+				
+				var result = "";
+				for (var i = 0; i < this.bible.length; i++) {
+					result = this.bible[i][varse];
+					if(!!result) {
+						//this.content = result;
+						for (var j = 0; j < result.length; j++) {
+							$("#verse").append(varse + ":" + (j+1));
+							$("#content").append(result[j]);
+							$('textarea').append((j+1) == result.length ? "" :"\n");
+						}
+						
+						break;
+					}
+				}
+				
+				autosize($('textarea'));
+				
+			}
+		},
+        created() {
+				axios.get('data/bible.json')
+                    .then(response => {
+                        //alert(JSON.stringify(response.data));
+                        this.bible = (response.data);
+                    });
+					
+				axios.get('data/category.json')
+                    .then(response => {
+						this.categories = response.data;
+                    });
+
+				axios.get('data/chapter.json')
+                    .then(response => {
+						this.chapterSetting = response.data;
+                    });
+		}
+	});
+</script>
