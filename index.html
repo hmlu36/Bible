@@ -32,10 +32,10 @@
 			<div class="form-group row">
 			
 				<div class="col-lg-2">
-					<textarea cols="20" rows="10" id="verse" class="form-control"></textarea>
+					<textarea cols="20" rows="30" id="verse" class="form-control" style="overflow:scroll" v-on></textarea>
 				</div>
 				<div class="col-lg-10">
-					<textarea cols="150" rows="10" id="content" class="form-control"></textarea>
+					<textarea cols="150" rows="30" id="content" class="form-control" style="overflow:scroll"></textarea>
 				</div>
 			</div>
 		</div>
@@ -92,26 +92,35 @@
 					}
 				}
 				
-				$("textarea").autoResize();
+				
 				
 			}
 		},
         created() {
-				axios.get('data/bible.json')
-                    .then(response => {
-                        //alert(JSON.stringify(response.data));
-                        this.bible = (response.data);
-                    });
-					
-				axios.get('data/category.json')
-                    .then(response => {
-						this.categories = response.data;
-                    });
+			axios.get('data/bible.json')
+				.then(response => {
+					//alert(JSON.stringify(response.data));
+					this.bible = (response.data);
+				});
+				
+			axios.get('data/category.json')
+				.then(response => {
+					this.categories = response.data;
+				});
 
-				axios.get('data/chapter.json')
-                    .then(response => {
-						this.chapterSetting = response.data;
-                    });
+			axios.get('data/chapter.json')
+				.then(response => {
+					this.chapterSetting = response.data;
+				});
+		},
+		mounted() {
+			$('#verse').scroll(function () {
+				$('#content').scrollTop($('#verse').scrollTop());
+			});
+			
+			$('#content').scroll(function () {
+				$('#verse').scrollTop($('#content').scrollTop());
+			});
 		}
 	});
 </script>
