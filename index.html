@@ -2,30 +2,34 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.css">
 		
 		
 		<script type="text/javascript" src="js/jquery/jquery-3.3.1.min.js"></script>
-		<script type="text/javascript" src="js/jquery/autosize.min.js"></script>
 		<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.13/vue.min.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.17.1/axios.js"></script>
 		
-
+		<script type="text/javascript" src="js/vue/vue-selectpicker.js"></script>
+		
 	</head>
 	<body>
 		<div id="app">
+			<h2>聖經閱讀小程式</h2>
 			<div class="form-group row">
 				<div class="col-lg-2">
-					<select v-model="selectedCategory" class="form-control">
-						<option value="">請選擇</option>
-						<option v-for="category in categories" v-bind:value="category.Code" >{{ category.Description }}
-					</select>
+					<v-select v-model="selectedCategory" :options="categories" livesearch="true"></v-select>
 				</div>
 				<div class="col-lg-2">
-					<select v-model="selectedChapter" class="form-control">
+				
+					<v-select v-model="selectedChapter" :options="chapters" livesearch="true"></v-select>
+					<!--
+					<select v-model="selectedChapter" class="form-control selectpicker">
 						<option value="">請選擇</option>
 						<option v-for="chapter in chapters" v-bind:value="chapter">{{ chapter }}
 					</select>
+					-->
 				</div>
 			</div>
 			
@@ -52,7 +56,7 @@
 			categories: {},
 			selectedCategory: {},
 			chapterSetting: {},
-			chapters: {},
+			chapters: [],
 			selectedChapter: {}
 		},
         methods: {
@@ -67,7 +71,13 @@
 		},
 		watch: {
 			selectedCategory: function() {
-				this.chapters = Number(this.ddlDescription(this.chapterSetting, this.selectedCategory));
+				var currentChapters = Number(this.ddlDescription(this.chapterSetting, this.selectedCategory));
+				
+				for (var i = 1; i <= currentChapters; i++) {
+					var chapter = {"Code": i , "Description":i };
+					
+					this.chapters.push(chapter);
+				}
 			},
 			selectedChapter: function() {
 				$("textarea").empty();
@@ -92,26 +102,10 @@
 					}
 				}
 				
-				
-				
 			}
 		},
         created() {
-			axios.get('data/bible.json')
-				.then(response => {
-					//alert(JSON.stringify(response.data));
-					this.bible = (response.data);
-				});
-				
-			axios.get('data/category.json')
-				.then(response => {
-					this.categories = response.data;
-				});
-
-			axios.get('data/chapter.json')
-				.then(response => {
-					this.chapterSetting = response.data;
-				});
+			
 		},
 		mounted() {
 			$('#verse').scroll(function () {
@@ -121,6 +115,22 @@
 			$('#content').scroll(function () {
 				$('#verse').scrollTop($('#content').scrollTop());
 			});
+			
+			axios.get('data/bible.json')
+				.then(response => {
+					//alert(JSON.stringify(response.data));
+					this.bible = (response.data);
+				});
+			
+			axios.get('data/category.json')
+				.then(response => {
+					this.categories = response.data;
+				});
+			
+			axios.get('data/chapter.json')
+				.then(response => {
+					this.chapterSetting = response.data;
+				});
 		}
 	});
 </script>
