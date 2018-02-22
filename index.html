@@ -12,6 +12,19 @@
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.17.1/axios.js"></script>
 		
 		<script type="text/javascript" src="js/vue/vue-selectpicker.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+		
+		<!-- textarea selection -->
+		<script type="text/javascript" src="js/jquery/jquery.selection.js"></script>
+		
+		<!-- export word -->
+		<script type="text/javascript" src="js/docxtemplater/docxtemplater-latest.js"></script>
+		<script type="text/javascript" src="js/docxtemplater/jszip.min.js"></script>
+		<script type="text/javascript" src="js/docxtemplater/vendor/file-saver.min.js"></script>
+		<!--[if IE]><script type="text/javascript"  src="js/docxtemplater/vendor/jszip-utils-ie.js"></script><![endif]-->
+		<!--[if !IE]>-->
+		<script type="text/javascript" src="js/docxtemplater/vendor/jszip-utils.js"></script>
+		
 		
 		<title>聖經閱讀小程式</title>
 		<style type="text/css">
@@ -29,14 +42,14 @@
 			<div class="text-center">
 				<h2>聖經閱讀小程式</h2><br/>
 			</div>
-			<div class="form-group row">
+			<div class="col-lg-8">
 			
-				<div class="col-lg-5">
+				<div class="col-lg-4">
 				<label class="text-right">目錄</label>
-					<v-select v-model="selectedCategory" :options="categories" livesearch="true"></v-select>
+					<v-select v-model="selectedCategory" :options="categories" livesearch="true" data-width="auto"></v-select>
 
 					<label class="text-right">章節</label>
-					<v-select v-model="selectedChapter" :options="chapters" livesearch="true"></v-select>
+					<v-select v-model="selectedChapter" :options="chapters" livesearch="true" data-width="100px"></v-select>
 				</div>
 				
 				<div class="form-group">
@@ -49,9 +62,15 @@
 							<option value="18">18</option>
 						</select>
 					</div>
+					<button type="button" class="btn btn-warning" id="export">匯出word檔</button>
 				</div>
+				
 			</div>
-			
+			<div class="col-lg-4 alert alert-danger">
+				1.匯出word檔功能，會產出歐陽詢字體檔案，供練字使用。<br/>
+				2.若有拖選經文內容，會根據拖選範圍匯出，否則匯出整章經文。
+			</div>
+				
 			<div class="form-group row">
 				<div class="col-lg-1">
 					<textarea cols="10" rows="30" id="verse" class="form-control" style="overflow:scroll"></textarea>
@@ -130,7 +149,23 @@
 		},
         created() {
 			this.fontSize = 16;
-			this.changeFont();
+			/*
+			$.googleSheetToJSON('158ynOk96sB_7TlNJNJQmY79b3bfZPc32rI67nVWXLAY')
+				.done(function(rows){
+					// each row is a row of data from the spreadsheet
+					//alert(JSON.stringify(rows));
+					//alert(rows[0]["date"]);
+					
+					for (var i = 0; i < rows.length; i++) {
+						// alert(row[i]["date"]);
+						//alert(new moment(rows[i]["date"], 'YYYY/MM/DD').toDate() == new Date().setHours(0,0,0,0));
+						alert(new moment().format("YYYY/MM/DD") == rows[i]["date"]);
+					}
+				})
+				.fail(function(err){
+					console.log('error!', err);
+				});
+				*/
 		},
 		mounted() {
 			$('#verse').scroll(function () {
@@ -156,6 +191,41 @@
 				.then(response => {
 					this.chapterSetting = response.data;
 				});
+				
+				
+			
+			// 匯出功能
+			let loadFile = function(url, callback) {
+            /// <summary>
+            /// loadFile for export word.
+            /// </summary>
+            /// <param name="url">The url path.</param>
+            /// <param name="callback">The callback.</param>
+				JSZipUtils.getBinaryContent(url, function(err, data) {
+					callback(null, data);
+				});
+			};
+			$("#export").click(function() {
+				loadFile("template.docx", function(err, content) {
+					var selectedText = !!$('#content').selection() ? $('#content').selection() : $('#content').text();
+					//alert(selectedText);
+					let objData = {
+						"content": selectedText
+					};
+					let zip = new JSZip(content);
+					let doc = new Docxtemplater().loadZip(zip)
+					doc.setData(objData) //set the templateVariables
+					doc.render() //apply them (replace all occurences of {title} by Hipp, ...)
+					let out = doc.getZip().generate({
+							type: "blob"
+						}) //Output the document using Data-URI
+					saveAs(out, "output.docx")
+				});
+			});
 		}
 	});
+	
+	
+	
+
 </script>
