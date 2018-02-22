@@ -1,17 +1,17 @@
-package Test;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 public class ReadTxtFile {
 
-	private static final String FILENAME = "D:\\svnbox\\bible\\bible.txt";
+	private static final String FILENAME = "D:\\svnbox\\bible\\Bible\\java\\bible.txt";
 
 	public static void main(String[] args) {
-
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(FILENAME), "UTF8"))) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(FILENAME), "BIG5"))) {
 
 			String sCurrentLine;
 			String prevChapter = "";
@@ -22,33 +22,32 @@ public class ReadTxtFile {
 			while ((sCurrentLine = br.readLine()) != null) {
 				int semicolon = sCurrentLine.indexOf(":");
 
-
 				if (!prevChapter.equals(sCurrentLine.substring(0, semicolon))) {
 
 					if (prevChapter.length() > 0) {
 						System.out.println("]},");
 					}
 					System.out.println("{\"" + sCurrentLine.substring(0, semicolon) + "\":[");
-					
+
 					/*
-					System.out.println("{\"chapter\":\"" + sCurrentLine.substring(0, semicolon) + "\",");
-					System.out.print("\"contents\": [");
-					*/
+					 * System.out.println("{\"chapter\":\"" +
+					 * sCurrentLine.substring(0, semicolon) + "\",");
+					 * System.out.print("\"contents\": [");
+					 */
 					lastVerse = true;
 				} else {
 					System.out.println(",");
 				}
 
 				verse = sCurrentLine.substring(semicolon + 1);
-				//System.out.print("{ \"verser\":" + verse.substring(0, firstStringIdx(verse)));
-				System.out.print("\"" + verse.substring(firstStringIdx(verse), verse.length()) + "\"");
+				// System.out.print("{ \"verser\":" + verse.substring(0,
+				// firstStringIdx(verse)));
+				System.out.print("\"" + StringEscapeUtils.unescapeHtml4(verse.substring(firstStringIdx(verse), verse.length()).replace(" ", "")) + "\"");
 				// System.out.println(verse);
 
 				/*
-				if (!lastVerse) {
-					System.out.println(",");
-				}
-				*/
+				 * if (!lastVerse) { System.out.println(","); }
+				 */
 				lastVerse = false;
 
 				prevChapter = sCurrentLine.substring(0, semicolon);
