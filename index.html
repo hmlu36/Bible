@@ -54,7 +54,7 @@
 				<div class="form-group">
 					<label class="col-sm-1 text-right">字體大小</label>
 					<div class="col-lg-1">
-						<select v-model="fontSize" class="form-control col-lg-1" v-on:change="changeFont">
+						<select v-model="fontSize" class="form-control" v-on:change="changeFont">
 							<option value="12">12</option>
 							<option value="14">14</option>
 							<option value="16">16</option>
@@ -67,7 +67,7 @@
 			</div>
 			<div class="col-lg-3 alert alert-danger">
 				1.匯出word檔功能，會產出歐陽詢字體檔案，供練字使用。<br/>
-				2.若有拖選經文內容，會根據拖選範圍匯出，否則匯出整章經文。
+				2.若有拖選內容，會根據拖選範圍匯出，否則匯出整章經文。
 			</div>
 				
 			<div class="form-group row">
