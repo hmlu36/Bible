@@ -219,7 +219,7 @@
 					let out = doc.getZip().generate({
 							type: "blob"
 						}) //Output the document using Data-URI
-					saveAs(out, "output.docx")
+					saveAs(out, new Date().toISOString().slice(0,10) + ".docx")
 				});
 			});
 		}
