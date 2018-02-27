@@ -84,7 +84,7 @@
 
 <script type="text/javascript">
 
-	
+var vm =
 	new Vue({
 		el: '#app',
 		data: {
@@ -107,6 +107,18 @@
 			},
 			changeFont() {
 				$("textarea").css("font-size", this.fontSize + "px");
+			},
+			
+			// 匯出功能
+			/// <summary>
+            /// loadFile for export word.
+            /// </summary>
+            /// <param name="url">The url path.</param>
+            /// <param name="callback">The callback.</param>
+			loadFile(url, callback) {
+				JSZipUtils.getBinaryContent(url, function(err, data) {
+					callback(null, data);
+				});
 			}
 		},
 		watch: {
@@ -194,23 +206,13 @@
 				
 				
 			
-			// 匯出功能
-			let loadFile = function(url, callback) {
-            /// <summary>
-            /// loadFile for export word.
-            /// </summary>
-            /// <param name="url">The url path.</param>
-            /// <param name="callback">The callback.</param>
-				JSZipUtils.getBinaryContent(url, function(err, data) {
-					callback(null, data);
-				});
-			};
+			
 			$("#export").click(function() {
-				loadFile("template.docx", function(err, content) {
+				vm.loadFile("template.docx", function(err, content) {
 					var selectedText = !!$('#content').selection() ? $('#content').selection() : $('#content').text();
 					//alert(selectedText);
 					let objData = {
-						"content": selectedText
+						"content": selectedText.replace(/\r\n|\n/g,"") // replace space and new line
 					};
 					let zip = new JSZip(content);
 					let doc = new Docxtemplater().loadZip(zip)
@@ -219,10 +221,16 @@
 					let out = doc.getZip().generate({
 							type: "blob"
 						}) //Output the document using Data-URI
-					saveAs(out, new Date().toISOString().slice(0,10) + ".docx")
+					saveAs(out, new Date().addHours(8).toISOString().slice(0,10) + ".docx")
 				});
 			});
 		}
 	});
+	
+	// 時區調整 + 8
+	Date.prototype.addHours= function(h){
+		this.setHours(this.getHours()+h);
+		return this;
+	}
 	
 </script>
