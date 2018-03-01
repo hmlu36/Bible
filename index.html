@@ -188,18 +188,24 @@ var vm =
 				$('#verse').scrollTop($('#content').scrollTop());
 			});
 			
-			axios.get('data/bible.json')
+			axios.get('data/bible.json', {
+					responseType: 'json'
+				})
 				.then(response => {
 					//alert(JSON.stringify(response.data));
 					this.bible = (response.data);
 				});
 			
-			axios.get('data/category.json')
+			axios.get('data/category.json', {
+					responseType: 'json'
+				})
 				.then(response => {
 					this.categories = response.data;
 				});
 			
-			axios.get('data/chapter.json')
+			axios.get('data/chapter.json', {
+					responseType: 'json'
+				})
 				.then(response => {
 					this.chapterSetting = response.data;
 				});
