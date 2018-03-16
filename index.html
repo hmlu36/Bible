@@ -118,7 +118,8 @@ var vm =
 				return result.toString();
 			},
 			changeFont() {
-				$("textarea").css("font-size", this.fontSize + "px");
+				$("#verse").css("font-size", this.fontSize + "px");
+				$("#content").css("font-size", this.fontSize + "px");
 			},
 			
 			// 匯出功能
