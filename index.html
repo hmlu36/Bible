@@ -118,8 +118,7 @@ var vm =
 				return result.toString();
 			},
 			changeFont() {
-				$("#verse").css("font-size", this.fontSize + "px");
-				$("#content").css("font-size", this.fontSize + "px");
+				$("textarea").css("font-size", this.fontSize + "px");
 			},
 			
 			// 匯出功能
@@ -161,6 +160,8 @@ var vm =
 		watch: {
 			selectedCategory: function() {
 				var currentChapters = Number(this.ddlDescription(this.chapterSetting, this.selectedCategory));
+				
+				this.chapters = [];
 				
 				for (var i = 1; i <= currentChapters; i++) {
 					var chapter = {"Code": i , "Description":i };
