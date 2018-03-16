@@ -118,7 +118,8 @@ var vm =
 				return result.toString();
 			},
 			changeFont() {
-				$("textarea").css("font-size", this.fontSize + "px");
+				$("#verse").css("font-size", this.fontSize + "px");
+				$("#content").css("font-size", this.fontSize + "px");
 			},
 			
 			// 匯出功能
@@ -140,17 +141,17 @@ var vm =
 				// alert(this.searchWord);
 				this.cleanScreen();
 				
-				var result = "";
+				var tempVerse = [];
 				for (var i = 0; i < this.bible.length; i++) {
-					result = this.bible[i]
-					var verse = Object.keys(result);
+					tempVerse = this.bible[i]
+					var verse = Object.keys(tempVerse);
 					
-					for (var j = 0; j < result[verse].length; j++) {
+					for (var j = 0; j < tempVerse[verse].length; j++) {
 						
-						if (result[verse][j].includes(this.searchWord)) {
+						if (tempVerse[verse][j].indexOf(this.searchWord) >= 0) {
 							
 							$("#verse").append(verse + ":" + (j+1) + "<br/>");
-							$("#content").append(result[verse][j].replace(this.searchWord, ("<span style='color: red;'>" + this.searchWord + "</span>")) + "<br/>");
+							$("#content").append(tempVerse[verse][j].replace(this.searchWord, ("<span style='color: red;'>" + this.searchWord + "</span>")) + "<br/>");
 							
 						}
 					}
