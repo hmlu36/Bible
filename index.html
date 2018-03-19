@@ -47,11 +47,11 @@
 				<div class="form-group">
 					<label class="col-lg-1 text-right">目錄</label>
 					<div class="col-lg-2">
-					<v-select v-model="selectedCategory" :options="categories" livesearch="true" data-width="180px"></v-select>
+						<v-select v-model="selectedCategory" :options="categoryData" livesearch="true" data-width="150px"></v-select>
 					</div>
 					<label class="col-lg-1 text-right">章節</label>
 					<div class="col-lg-2">
-					<v-select v-model="selectedChapter" :options="chapters" livesearch="true" data-width="100px"></v-select>
+						<v-select v-model="selectedChapter" :options="chapters" livesearch="true" data-width="100px"></v-select>
 					</div>
 					<label class="col-lg-1 text-right">字體大小</label>
 					<div class="col-lg-1">
@@ -70,8 +70,15 @@
 					<div class="col-lg-2">
 						<input class="form-control" v-model="searchWord">
 					</div>
+					
+					<label class="col-lg-1 text-right">章節起訖</label>
+					<div class="col-lg-3">
+						<v-select v-model="startCategory" :options="categoryData" livesearch="true" data-width="150px"></v-select>
+						~
+						<v-select v-model="endCategory" :options="categoryData" livesearch="true" data-width="150px"></v-select>
+					</div>
 				</div>
-				<div class="col-lg-5">
+				<div class="col-lg-3">
 					<button type="button" class="btn btn-info col-lg-2" v-on:click="queryBible">查詢</button>
 				</div>
 			</div>
@@ -99,14 +106,17 @@ var vm =
 	new Vue({
 		el: '#app',
 		data: {
-			bible: {},
-			categories: {},
+			bibleData: {},
+			categoryData: {},
 			selectedCategory: {},
-			chapterSetting: {},
+			chapterData: {},
 			chapters: [],
 			selectedChapter: {},
 			fontSize: {},
-			searchWord: ""
+			// 查詢用
+			searchWord: "",
+			startCategory: "",
+			endCategory: ""
 		},
         methods: {
 			ddlDescription(jsonArray, compareKey) {
@@ -120,6 +130,12 @@ var vm =
 			changeFont() {
 				$("#verse").css("font-size", this.fontSize + "px");
 				$("#content").css("font-size", this.fontSize + "px");
+			},
+			getDdlIndex(jsonArray, compareKey) {
+				return jsonArray.map(function(entry, i){
+					if(Object.keys(entry) == compareKey) return i;
+				}).filter(function(entry){ return entry!=undefined; });
+				
 			},
 			
 			// 匯出功能
@@ -138,29 +154,40 @@ var vm =
 				$("#content").empty();
 			},
 			queryBible() {
-				// alert(this.searchWord);
+				
 				this.cleanScreen();
 				
+				var tempStartCategory = !this.startCategory ? this.categoryData[0].Code : this.startCategory;
+				var tempEndCategory = !this.endCategory ? this.categoryData[this.categoryData.length - 1].Code : this.endCategory;
+				
+				var startBibleIndex = Number(this.getDdlIndex(this.bibleData, tempStartCategory + 1));
+				var endChapter = this.ddlDescription(this.chapterData, tempEndCategory);
+				var endBibleIndex = Number(this.getDdlIndex(this.bibleData, tempEndCategory + endChapter));
+				
+				//alert(startBibleIndex);
+				//alert(endBibleIndex);
+				
+				
 				var tempVerse = [];
-				for (var i = 0; i < this.bible.length; i++) {
-					tempVerse = this.bible[i]
+				for (var i = startBibleIndex; i < endBibleIndex; i++) {
+					
+					tempVerse = this.bibleData[i]
 					var verse = Object.keys(tempVerse);
 					
 					for (var j = 0; j < tempVerse[verse].length; j++) {
-						
 						if (tempVerse[verse][j].indexOf(this.searchWord) >= 0) {
-							
 							$("#verse").append(verse + ":" + (j+1) + "<br/>");
 							$("#content").append(tempVerse[verse][j].replace(this.searchWord, ("<span style='color: red;'>" + this.searchWord + "</span>")) + "<br/>");
 							
 						}
 					}
 				}
+				
 			}
 		},
 		watch: {
 			selectedCategory: function() {
-				var currentChapters = Number(this.ddlDescription(this.chapterSetting, this.selectedCategory));
+				var currentChapters = Number(this.ddlDescription(this.chapterData, this.selectedCategory));
 				
 				this.chapters = [];
 				
@@ -176,13 +203,13 @@ var vm =
 				this.cleanScreen();
 				
 				
-				//alert(JSON.stringify(this.bible));
+				//alert(JSON.stringify(this.bibleData));
 				//alert(this.selectedCategory + this.selectedChapter);
 				var verse = this.selectedCategory + this.selectedChapter;
 				
 				var result = "";
-				for (var i = 0; i < this.bible.length; i++) {
-					result = this.bible[i][verse];
+				for (var i = 0; i < this.bibleData.length; i++) {
+					result = this.bibleData[i][verse];
 					if(!!result) {
 						//this.content = result;
 						for (var j = 0; j < result.length; j++) {
@@ -214,21 +241,21 @@ var vm =
 				})
 				.then(response => {
 					//alert(JSON.stringify(response.data));
-					this.bible = (response.data);
+					this.bibleData = (response.data);
 				});
 			
 			axios.get('data/category.json', {
 					responseType: 'json'
 				})
 				.then(response => {
-					this.categories = response.data;
+					this.categoryData = response.data;
 				});
 			
 			axios.get('data/chapter.json', {
 					responseType: 'json'
 				})
 				.then(response => {
-					this.chapterSetting = response.data;
+					this.chapterData = response.data;
 				});
 				
 				
