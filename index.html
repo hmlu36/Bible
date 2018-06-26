@@ -62,7 +62,11 @@
 							<option value="18">18</option>
 						</select>
 					</div>
-					<button type="button" class="btn btn-warning" id="export">匯出word檔</button>
+					
+					<label class="col-lg-1 text-right">字體</label>
+					<div class="col-lg-1">
+						<v-select v-model="selectedExport" :options="exports" livesearch="true" data-width="100px"></v-select>
+					</div>
 				</div>
 				
 				<div class="form-group row">
@@ -77,11 +81,12 @@
 						~
 						<v-select v-model="endCategory" :options="categoryData" livesearch="true" data-width="150px"></v-select>
 					</div>
+					<button type="button" class="btn btn-warning" v-on:click="exportFile">匯出word檔</button>
 					<button type="button" class="btn btn-info" v-on:click="queryBible">查詢</button>
 				</div>
 			</div>
 			<div class="col-lg-3 alert alert-danger">
-				1.匯出word檔功能，會產出<a href="https://goo.gl/RMTupU" target="_blank">歐陽詢字體</a>檔案，供練字使用。<br/>
+				1.匯出word檔功能，會產出<a href="https://goo.gl/RMTupU" target="_blank">歐陽詢字體</a>/<a href="https://goo.gl/aEnyZi" target="_blank">隸書</a>檔案，供練字使用。<br/>
 				2.若有拖選內容，會根據拖選範圍匯出，否則匯出整章經文。<br/>
 				3.聖經採用<a href="https://goo.gl/rZ9PmG" target="_blank"> 合和本</a>，有經過加工處理。
 			</div>
@@ -111,6 +116,8 @@ var vm =
 			chapters: [],
 			selectedChapter: {},
 			fontSize: {},
+			exports: [],
+			selectedExport: "clerical-template.docx",
 			// 查詢用
 			searchWord: "",
 			startCategory: "",
@@ -181,6 +188,23 @@ var vm =
 					}
 				}
 				
+			},
+			exportFile() {
+				vm.loadFile("template/" + vm.selectedExport, function(err, content) {
+					var selectedText = !!$.selection() ? $.selection() : $('#content').text();
+					//alert(selectedText);
+					let objData = {
+						"content": selectedText.replace(/\r\n|\n/g,"") // replace space and new line
+					};
+					let zip = new JSZip(content);
+					let doc = new Docxtemplater().loadZip(zip)
+					doc.setData(objData) //set the templateVariables
+					doc.render() //apply them (replace all occurences of {title} by Hipp, ...)
+					let out = doc.getZip().generate({
+							type: "blob"
+						}) //Output the document using Data-URI
+					saveAs(out, new Date().addHours(8).toISOString().slice(0,10) + ".docx")
+				});
 			}
 		},
 		watch: {
@@ -257,25 +281,13 @@ var vm =
 				});
 				
 				
-			
-			
-			$("#export").click(function() {
-				vm.loadFile("template.docx", function(err, content) {
-					var selectedText = !!$.selection() ? $.selection() : $('#content').text();
-					//alert(selectedText);
-					let objData = {
-						"content": selectedText.replace(/\r\n|\n/g,"") // replace space and new line
-					};
-					let zip = new JSZip(content);
-					let doc = new Docxtemplater().loadZip(zip)
-					doc.setData(objData) //set the templateVariables
-					doc.render() //apply them (replace all occurences of {title} by Hipp, ...)
-					let out = doc.getZip().generate({
-							type: "blob"
-						}) //Output the document using Data-URI
-					saveAs(out, new Date().addHours(8).toISOString().slice(0,10) + ".docx")
+			axios.get('data/export.json', {
+					responseType: 'json'
+				})
+				.then(response => {
+					//alert(JSON.stringify(response.data));
+					this.exports = (response.data);
 				});
-			});
 		}
 	});
 	
