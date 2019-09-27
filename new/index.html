@@ -37,26 +37,19 @@
 				</div>
 				<label class="col-1 text-right">章節</label>
 				<div class="col-2">
-					<v-select v-model="selectedChapter" :options="relatedChapters">
-					</v-select>
-				</div>
-				<!--
-				<label class="col-lg-1 text-right">字體大小</label>
-				<div class="col-lg-1">
-					<select v-model="fontSize" class="form-control" v-on:change="changeFont">
-						<option value="12">12</option>
-						<option value="14">14</option>
-						<option value="16">16</option>
-						<option value="18">18</option>
-					</select>
+					<v-select v-model="selectedChapter" :options="relatedChapters" @input="changeChapter"> </v-select>
 				</div>
 
-				<label class="col-lg-1 text-right">字體</label>
-				<div class="col-lg-1">
-					<v-select v-model="selectedExport" :options="exports" livesearch="true" data-width="100px">
-					</v-select>
+				<label class="col-1 text-right">字體大小</label>
+				<div class="col">
+					<v-select v-model="selectedFontSize" :options="fontSizes" @input="changeFont"></v-select>
 				</div>
-			-->
+
+				<label class="col-1 text-right">匯出字體</label>
+				<div class="col">
+					<v-select v-model="selectedExportOption" :options="exportOptions"
+						:reduce="exportOption => exportOption.font" label="name"></v-select>
+				</div>
 			</div>
 			<!--
 			<div class="form-group row">
@@ -86,16 +79,13 @@
 			2.若有拖選內容，會根據拖選範圍匯出，否則匯出整章經文。<br />
 			3.聖經採用<a href="https://goo.gl/rZ9PmG" target="_blank"> 合和本</a>，有經過加工處理。
 		</div>
-
+		-->
 		<div class="form-group row">
 			<div class="col-lg-1" id="verse" style="height:600px;overflow-y:scroll;">
 
 			</div>
-			<div class="col-lg-11" id="content" style="height:600px;overflow-y:scroll;">
-
-			</div>
+			<div class="col-11" style="height:600px;overflow-y:scroll;" v-html="contents"> </div>
 		</div>
-		-->
 	</div>
 </body>
 
@@ -125,9 +115,11 @@
 				chapters: [],
 				relatedChapters: [],
 				selectedChapter: {},
-				fontSize: {},
-				exports: [],
-				selectedExport: "semi-cursive-template.docx", // 預設行書
+				selectedFontSize: {},
+				fontSizes: [12, 14, 16, 18],
+				exportOptions: [],
+				selectedExportOption: {},
+				contents: {},
 				// 查詢用
 				searchWord: "",
 				startCategory: "",
@@ -159,6 +151,20 @@
 						.fill()
 						.map(() => verse++);
 					//console.log(JSON.stringify(this.relatedChapters));
+				},
+				changeChapter() {
+					//console.log(this.selectedCategory + this.selectedChapter);
+
+					this.loadJSON('./data/' + this.selectedCategory + '.json', json => {
+						//console.log(json);
+						let verse = json.filter(data => Object.keys(data) == this.selectedCategory + this.selectedChapter)[0];
+						console.log(Object.values(verse).join("</p><p>"));
+						this.contents = Object.values(verse).join("\r\n") ;
+
+					});
+				},
+				changeFont() {
+
 				},
 				// 匯出功能
 				/// <summary>
@@ -208,14 +214,9 @@
 					this.chapters = json;
 				});
 
-				/*
-				axios.get('data/export.json', {
-					responseType: 'json'
-				}).then(response => {
-					//alert(JSON.stringify(response.data));
-					this.exports = (response.data);
+				this.loadJSON('./data/exportOption.json', json => {
+					this.exportOptions = json;
 				});
-				*/
 			}
 		});
 
