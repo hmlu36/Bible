@@ -11,13 +11,13 @@
 		/*@import url(https://fonts.googleapis.com/earlyaccess/cwtexfangsong.css);*/
 		/*@import url(https://fonts.googleapis.com/earlyaccess/cwtexming.css);*/
 		/*@import url(https://fonts.googleapis.com/earlyaccess/cwtexyen.css);*/
-		@import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);
+		/*@import url(https://fonts.googleapis.com/earlyaccess/notosanstc.css);*/
 
 		* {
 			/*font-family: 'cwTeXFangSong', sans-serif;*/
 			/*font-family: 'cwTeXMing', sans-serif;*/
 			/*font-family: 'cwTeXYen', sans-serif;*/
-			font-family: 'Noto Sans TC', sans-serif;
+			/*font-family: 'Noto Sans TC', sans-serif;*/
 		}
 	</style>
 </head>
@@ -28,12 +28,10 @@
 			<!--<h2>讀經小幫手</h2><br />-->
 		</div>
 		<div class="col-lg-9">
-
 			<div class="form-group row">
 				<label class="col-1 text-right">目錄</label>
 				<div class="col-2">
-					<v-select v-model="selectedCategory" :options="categories" :reduce="category => category.abbr"
-						label="name" @input="changeCategory"></v-select>
+					<v-select v-model="selectedCategory" :options="categories" :reduce="category => category.abbr" label="name" @input="changeCategory"></v-select>
 				</div>
 				<label class="col-1 text-right">章節</label>
 				<div class="col-2">
@@ -42,34 +40,32 @@
 
 				<label class="col-1 text-right">字體大小</label>
 				<div class="col">
-					<v-select v-model="selectedFontSize" :options="fontSizes" @input="changeFont"></v-select>
+					<v-select v-model="selectedFontSize" :options="fontSizes"></v-select>
 				</div>
 
 				<label class="col-1 text-right">匯出字體</label>
 				<div class="col">
-					<v-select v-model="selectedExportOption" :options="exportOptions"
-						:reduce="exportOption => exportOption.font" label="name"></v-select>
+					<v-select v-model="selectedExportOption" :options="exportOptions" :reduce="exportOption => exportOption.font" label="name"></v-select>
 				</div>
 			</div>
-			<!--
+
 			<div class="form-group row">
-				<label class="col-lg-1 text-right">關鍵字查詢</label>
-				<div class="col-lg-2">
+				<label class="col-1 text-right">關鍵字查詢</label>
+				<div class="col-2">
 					<input class="form-control" v-model="searchWord">
 				</div>
 
-				<label class="col-lg-1 text-right">章節起訖</label>
-				<div class="col-lg-4">
-					<v-select v-model="startCategory" :options="categoryData" livesearch="true" data-width="150px">
-					</v-select>
-					~
-					<v-select v-model="endCategory" :options="categoryData" livesearch="true" data-width="150px">
-					</v-select>
+				<label class="col-1 text-right">章節起</label>
+				<div class="col-2 text-center">
+					<v-select v-model="startCategory" :options="categories" :reduce="category => category.abbr" label="name"></v-select>
+				</div>
+				<span class="col-1 text-center">章節迄</span>
+				<div class="col-2">
+					<v-select v-model="endCategory" :options="categories" :reduce="category => category.abbr" label="name"></v-select>
 				</div>
 				<button type="button" class="btn btn-warning" v-on:click="exportFile">匯出檔案</button>
 				<button type="button" class="btn btn-info" v-on:click="queryBible">查詢</button>
 			</div>
-			-->
 		</div>
 		<!--
 		<div class="col-lg-3 alert alert-danger">
@@ -81,10 +77,20 @@
 		</div>
 		-->
 		<div class="form-group row">
-			<div class="col-lg-1" id="verse" style="height:600px;overflow-y:scroll;">
-
+			<div class="col-1 text-right">
+				<span>節</span>
 			</div>
-			<div class="col-11" style="height:600px;overflow-y:scroll;" v-html="contents"> </div>
+			<div class="col-11">
+				<span>內容</span>
+			</div>
+		</div>
+		<div class="form-group row">
+			<div class="col-1 text-right" style="white-space: pre;">
+				<span>{{verses}}</span>
+			</div>
+			<div class="col-11" style="white-space: pre;">
+				<span>{{contents}}</span>
+			</div>
 		</div>
 	</div>
 </body>
@@ -119,7 +125,9 @@
 				fontSizes: [12, 14, 16, 18],
 				exportOptions: [],
 				selectedExportOption: {},
-				contents: {},
+				verses: "",
+				contents: "",
+				selectedRange: "",
 				// 查詢用
 				searchWord: "",
 				startCategory: "",
@@ -142,42 +150,55 @@
 					xobj.send(null);
 				},
 				changeCategory() {
-					console.log(this.selectedCategory);
+					//console.log(this.selectedCategory);
+					this.selectedChapter = "";
 					let chapter = this.chapters.filter(chapter => { return chapter.abbr == this.selectedCategory })[0];
 					//console.log(chapter.verse);
 
 					let verse = 1;
-					this.relatedChapters = Array(chapter.verse)
-						.fill()
-						.map(() => verse++);
+					this.relatedChapters = Array(chapter.verse).fill().map(() => verse++);
 					//console.log(JSON.stringify(this.relatedChapters));
 				},
 				changeChapter() {
 					//console.log(this.selectedCategory + this.selectedChapter);
-
 					this.loadJSON('./data/' + this.selectedCategory + '.json', json => {
 						//console.log(json);
-						let verse = json.filter(data => Object.keys(data) == this.selectedCategory + this.selectedChapter)[0];
-						console.log(Object.values(verse).join("</p><p>"));
-						this.contents = Object.values(verse).join("\r\n") ;
+						let chapter = json.filter(data => Object.keys(data) == this.selectedCategory + this.selectedChapter)[0];
+						//console.log(JSON.stringify(Object.values(chapter)[0]));
+						this.contents = Object.values(chapter)[0].join("\n");
 
+						let count = 1;
+						this.verses = Array(Object.values(chapter)[0].length).fill().map(() => count++).join("\n");
 					});
 				},
-				changeFont() {
-
+				getSelectedText() {
+					if (window.getSelection) {
+						let sel = window.getSelection()
+						if (sel.getRangeAt && sel.rangeCount) {
+							this.selectedRange = sel.getRangeAt(0);
+						}
+						return window.getSelection().toString()
+					} else if (document.selection) {
+						this.selectedRange = document.selection.createRange()
+						return document.selection.createRange().text
+					}
+					return ''
+				},
+				queryBible() {
+					let startIndex = this.categories.findIndex(item => item.abbr == (!this.startCategory ? this.categories[0].abbr : this.startCategory));
+					let endIndex = this.categories.findIndex(item => item.abbr == (!this.tempEndCategory ? this.categories[this.categories.length - 1].abbr : this.tempEndCategory));
+					console.log(startIndex);
+					console.log(endIndex);
 				},
 				// 匯出功能
-				/// <summary>
-				/// loadFile for export word.
-				/// </summary>
-				/// <param name="url">The url path.</param>
-				/// <param name="callback">The callback.</param>
 				loadFile(url, callback) {
 					JSZipUtils.getBinaryContent(url, function (err, data) {
 						callback(null, data);
 					});
 				},
 				exportFile() {
+					console.log(this.getSelectedText());
+					/*
 					vm.loadFile("template/" + vm.selectedExport, function (err, content) {
 						var selectedText = !!$.selection() ? $.selection() : $('#content').text();
 						//alert(selectedText);
@@ -193,6 +214,7 @@
 						}) //Output the document using Data-URI
 						saveAs(out, new Date().addHours(8).toISOString().slice(0, 10) + ".docx")
 					});
+					*/
 				}
 			},
 			computed: {
@@ -202,10 +224,6 @@
 				//this.changeFont();
 			},
 			mounted() {
-				this.loadJSON('./data/bible.json', json => {
-					this.bibleData = json;
-				});
-
 				this.loadJSON('./data/category.json', json => {
 					this.categories = json;
 				});
